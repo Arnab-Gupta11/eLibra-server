@@ -26,19 +26,33 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
 
     const categoryCollection = client.db("LibraryDB").collection("categories");
+    const booksCollection = client.db("LibraryDB").collection("books");
 
     /*-------------------> Get operation <----------------------*/
 
     app.get("/categories", async (req, res) => {
-      try {
-        const result = await categoryCollection.find().toArray();
-        res.send(result);
-      } catch (err) {
-        console.log(err);
-      }
+      const cursor = categoryCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    app.get("/books", async (req, res) => {
+      const result = await booksCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/books/:categoryName", async (req, res) => {
+      const categoryName = req.params.categoryName;
+      const query = { category: categoryName };
+      const result = await booksCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    /*-------------------> Post operation <----------------------*/
+    app.post("/books", async (req, res) => {
+      const newBook = req.body;
+      const result = await booksCollection.insertOne(newBook);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
@@ -46,7 +60,6 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    // await client.close();
   }
 }
 run().catch(console.dir);
