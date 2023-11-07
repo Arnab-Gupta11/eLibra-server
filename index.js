@@ -29,36 +29,99 @@ async function run() {
 
     const categoryCollection = client.db("LibraryDB").collection("categories");
     const booksCollection = client.db("LibraryDB").collection("books");
+    const reviewsCollection = client.db("LibraryDB").collection("reviews");
+    const borrowCollection = client.db("LibraryDB").collection("borrowBooks");
 
     /*-------------------> Get operation <----------------------*/
 
     app.get("/categories", async (req, res) => {
-      const cursor = categoryCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
+      try {
+        const cursor = categoryCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
     });
     app.get("/books", async (req, res) => {
-      const result = await booksCollection.find().toArray();
-      res.send(result);
+      try {
+        const result = await booksCollection.find().toArray();
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
     });
-    app.get("/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await booksCollection.findOne(query);
-      res.send(result);
+    app.get("/borrows", async (req, res) => {
+      try {
+        const result = await borrowCollection.find().toArray();
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+    app.get("/reviews", async (req, res) => {
+      try {
+        const result = await reviewsCollection.find().toArray();
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
     });
 
-    app.get("/books/:categoryName", async (req, res) => {
-      const categoryName = req.params.categoryName;
-      const query = { category: categoryName };
-      const result = await booksCollection.find(query).toArray();
-      res.send(result);
+    app.get("/books/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await booksCollection.findOne(query);
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    app.get("/books/category/:categoryName", async (req, res) => {
+      try {
+        const categoryName = req.params.categoryName;
+        const query = { category: categoryName };
+        const result = await booksCollection.find(query).toArray();
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
     });
 
     /*-------------------> Post operation <----------------------*/
     app.post("/books", async (req, res) => {
-      const newBook = req.body;
-      const result = await booksCollection.insertOne(newBook);
+      try {
+        const newBook = req.body;
+        const result = await booksCollection.insertOne(newBook);
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+    app.post("/borrows", async (req, res) => {
+      try {
+        const newBorrowBook = req.body;
+        const result = await borrowCollection.insertOne(newBorrowBook);
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    /*-------------------> Put operation <----------------------*/
+    app.put("/books/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedBook = req.body;
+      const book = {
+        $set: {
+          ...updatedBook,
+        },
+      };
+      const result = await booksCollection.updateOne(filter, book, options);
       res.send(result);
     });
 
