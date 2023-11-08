@@ -53,7 +53,11 @@ async function run() {
     });
     app.get("/borrows", async (req, res) => {
       try {
-        const result = await borrowCollection.find().toArray();
+        let query = {};
+        if (req.query?.email) {
+          query = { email: req.query.email };
+        }
+        const result = await borrowCollection.find(query).toArray();
         res.send(result);
       } catch (err) {
         console.log(err);
@@ -112,16 +116,41 @@ async function run() {
 
     /*-------------------> Put operation <----------------------*/
     app.put("/books/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const options = { upsert: true };
+        const updatedBook = req.body;
+        const book = {
+          $set: {
+            ...updatedBook,
+          },
+        };
+        const result = await booksCollection.updateOne(filter, book, options);
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    app.patch("/books/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
-      const options = { upsert: true };
       const updatedBook = req.body;
-      const book = {
+      const updateUser = {
         $set: {
           ...updatedBook,
         },
       };
-      const result = await booksCollection.updateOne(filter, book, options);
+      const result = await booksCollection.updateOne(filter, updateUser);
+      res.send(result);
+    });
+
+    /*-------------------> Delete operation <----------------------*/
+    app.delete("/borrows/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await borrowCollection.deleteOne(query);
       res.send(result);
     });
 
